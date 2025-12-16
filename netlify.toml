@@ -1,11 +1,10 @@
-[build]
-  command = "pnpm build"
+﻿[build]
+  command = "pnpm install && pnpm build"
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "18"        # O la versión que uses
-  NPM_FLAGS = "--version"    # Previene conflictos de NPM con pnpm
-  NEXT_PRIVATE_TARGET = "server" # Importante si usás funciones
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--version"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
