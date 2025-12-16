@@ -1,0 +1,788 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Search, Home, MapPin, DollarSign, BedDouble, Clock, Car, Calendar, Filter, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import Image from "next/image"
+import { useDispatch, useSelector } from "react-redux"
+import { setFilters, selectPropertyFilters } from "@/lib/redux/slices/propertySlice"
+import { useRouter, usePathname } from "next/navigation"
+
+  // Lista de tipos de propiedades
+  const propertyTypes = [
+    { value: "house", label: "Casa" },
+    { value: "apartment", label: "Departamento" },
+    { value: "land", label: "Terreno" },
+    { value: "office", label: "Oficina" },
+    { value: "commercial", label: "Local Comercial" },
+  { value: "country_house", label: "Casa de Country" }
+]
+
+// Lista de ubicaciones populares
+const locations = [
+  "Pilar", "Palermo", "Recoleta", "Belgrano", "Núñez", 
+  "Villa Urquiza", "Caballito", "Villa Devoto", "San Isidro", "Vicente López"
+]
+
+export default function SearchBar() {
+  const dispatch = useDispatch()
+  const router = useRouter()
+  const pathname = usePathname()
+  const currentFilters = useSelector(selectPropertyFilters)
+  
+  // Estados para los filtros
+  const [searchTerm, setSearchTerm] = useState("")
+  const [searchType, setSearchType] = useState(currentFilters.listing_type || "sale")
+  const [priceRange, setPriceRange] = useState([0, 500000])
+  const [selectedPropertyType, setSelectedPropertyType] = useState("")
+  const [selectedLocations, setSelectedLocations] = useState([])
+  const [selectedRooms, setSelectedRooms] = useState("")
+  const [expensesRange, setExpensesRange] = useState([0, 500])
+  const [garage, setGarage] = useState("any")
+  const [age, setAge] = useState("any")
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
+
+  // Detectar scroll para cambiar estilos
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Inicializar filtros desde Redux
+  useEffect(() => {
+    if (currentFilters) {
+      setSearchType(currentFilters.listing_type || "sale")
+      
+      if (currentFilters.price_min !== undefined && currentFilters.price_max !== undefined) {
+        setPriceRange([currentFilters.price_min, currentFilters.price_max])
+      }
+      
+      if (currentFilters.property_type) {
+        setSelectedPropertyType(currentFilters.property_type)
+      }
+      
+      if (currentFilters.location) {
+        const locationArray = Array.isArray(currentFilters.location) 
+          ? currentFilters.location 
+          : [currentFilters.location]
+        setSelectedLocations(locationArray)
+      }
+      
+      if (currentFilters.rooms) {
+        setSelectedRooms(currentFilters.rooms.toString())
+      }
+      
+      if (currentFilters.has_garage !== undefined) {
+        setGarage(currentFilters.has_garage === true ? "yes" : 
+                 currentFilters.has_garage === false ? "no" : "any")
+      }
+
+      if (currentFilters.age) {
+        setAge(currentFilters.age)
+      }
+    }
+  }, [currentFilters])
+
+  // Función para aplicar filtros automáticamente
+  const applyFilters = () => {
+    // Iniciar con un objeto vacío para evitar mantener filtros antiguos
+    const filters = {
+      listing_type: searchType
+    };
+    
+    // Agregar el término de búsqueda solo si tiene valor
+    if (searchTerm && searchTerm.trim() !== '') {
+      filters.search = searchTerm;
+    }
+    
+    // Agregar filtros solo si tienen valores válidos
+    if (selectedPropertyType && selectedPropertyType !== "") {
+      filters.property_type = selectedPropertyType;
+    }
+    
+    if (selectedLocations && selectedLocations.length > 0) {
+      filters.location = selectedLocations;
+    }
+    
+    // Solo agregar los filtros de rango si son diferentes de los valores predeterminados
+    if (priceRange[0] > 0 || priceRange[1] < 500000) {
+      filters.price_min = priceRange[0];
+      filters.price_max = priceRange[1];
+    }
+    
+    if (selectedRooms && selectedRooms !== "") {
+      filters.rooms = parseInt(selectedRooms);
+    }
+    
+    if (garage !== "any") {
+      filters.has_garage = garage === "yes";
+    }
+    
+    if (expensesRange[0] > 0 || expensesRange[1] < 500) {
+      filters.expenses_min = expensesRange[0];
+      filters.expenses_max = expensesRange[1];
+    }
+    
+    if (age !== "any") {
+      filters.age = age;
+    }
+    
+    // Reemplazar todos los filtros en Redux en lugar de fusionarlos
+    dispatch(setFilters(filters));
+    
+    // Si no estamos en la página de compra/venta, redirigir
+    if (pathname === "/") {
+      router.push(searchType === "sale" ? "/comprar" : "/listado");
+    }
+  };
+
+  // Función para manejar el envío del formulario de búsqueda
+  const handleSearch = (e) => {
+    e.preventDefault()
+    applyFilters()
+  }
+
+  // Función para cambiar el tipo de búsqueda (compra/alquiler)
+  const handleSearchTypeChange = (type) => {
+    setSearchType(type)
+    // Aplicar filtro inmediatamente
+    dispatch(setFilters({ ...currentFilters, listing_type: type }))
+    
+    // Si estamos en la página principal, redirigir a la correspondiente
+    if (pathname === "/") {
+      router.push(type === "sale" ? "/comprar" : "/listado")
+    }
+  }
+
+  // Función para manejar cambios en el tipo de propiedad
+  const handlePropertyTypeChange = (value) => {
+    setSelectedPropertyType(value)
+    setTimeout(applyFilters, 100) // Pequeño retraso para asegurar que el estado se actualice
+  }
+
+  // Función para manejar cambios en los checkboxes de ubicación
+  const handleLocationChange = (location) => {
+    const newLocations = selectedLocations.includes(location)
+      ? selectedLocations.filter(loc => loc !== location)
+      : [...selectedLocations, location]
+    
+    setSelectedLocations(newLocations)
+    setTimeout(applyFilters, 100)
+  }
+
+  // Función para manejar cambios en el rango de precios
+  const handlePriceRangeChange = (minOrMax, value) => {
+    const newValue = parseInt(value);
+    if (minOrMax === 'min') {
+      // Asegurar que el nuevo mínimo no sea mayor que el máximo
+      const newMin = Math.min(newValue, priceRange[1] - 10000);
+      setPriceRange([newMin, priceRange[1]]);
+    } else {
+      // Asegurar que el nuevo máximo no sea menor que el mínimo
+      const newMax = Math.max(newValue, priceRange[0] + 10000);
+      setPriceRange([priceRange[0], newMax]);
+    }
+  }
+
+  // Función para aplicar el filtro de precio cuando termina de deslizar
+  const handlePriceRangeCommit = () => {
+    applyFilters();
+  }
+
+  // Función para manejar cambios en la selección de habitaciones
+  const handleRoomsChange = (value) => {
+    setSelectedRooms(value)
+    setTimeout(applyFilters, 100)
+  }
+
+  // Función para manejar cambios en el rango de expensas
+  const handleExpensesRangeChange = (minOrMax, value) => {
+    const newValue = parseInt(value);
+    if (minOrMax === 'min') {
+      // Asegurar que el nuevo mínimo no sea mayor que el máximo
+      const newMin = Math.min(newValue, expensesRange[1] - 50);
+      setExpensesRange([newMin, expensesRange[1]]);
+    } else {
+      // Asegurar que el nuevo máximo no sea menor que el mínimo
+      const newMax = Math.max(newValue, expensesRange[0] + 50);
+      setExpensesRange([expensesRange[0], newMax]);
+    }
+  }
+
+  // Función para aplicar el filtro de expensas cuando termina de deslizar
+  const handleExpensesRangeCommit = () => {
+    applyFilters()
+  }
+
+  // Función para manejar cambios en la selección de garage
+  const handleGarageChange = (value) => {
+    setGarage(value)
+    setTimeout(applyFilters, 100)
+  }
+
+  // Función para manejar cambios en la selección de antigüedad
+  const handleAgeChange = (value) => {
+    setAge(value)
+    setTimeout(applyFilters, 100)
+  }
+
+  // Función para limpiar un filtro específico
+  const clearPropertyTypeFilter = () => {
+    setSelectedPropertyType("");
+    setTimeout(applyFilters, 100);
+  };
+
+  const clearLocationsFilter = () => {
+    setSelectedLocations([]);
+    setTimeout(applyFilters, 100);
+  };
+
+  const clearPriceFilter = () => {
+    setPriceRange([0, 500000]);
+    setTimeout(applyFilters, 100);
+  };
+
+  const clearRoomsFilter = () => {
+    setSelectedRooms("");
+    setTimeout(applyFilters, 100);
+  };
+
+  const clearExpensesFilter = () => {
+    setExpensesRange([0, 500]);
+    setTimeout(applyFilters, 100);
+  };
+
+  const clearGarageFilter = () => {
+    setGarage("any");
+    setTimeout(applyFilters, 100);
+  };
+
+  const clearAgeFilter = () => {
+    setAge("any");
+    setTimeout(applyFilters, 100);
+  };
+
+  return (
+    <div className={`relative w-full ${isScrolled ? 'pb-6' : 'pb-12'} transition-all duration-300`} style={{ zIndex: 50 }}>
+      {/* Background con overlay */}
+      <div className="absolute inset-0 bg-[#1A1A1A] -z-10">
+      <Image
+          src="/images/image6.png"
+        alt="Background"
+        priority
+        fill
+          className="object-cover opacity-40"
+          quality={90}
+      />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/80"></div>
+      </div>
+      
+      {/* Content Container */}
+      <div className={`relative z-30 w-full max-w-7xl mx-auto px-4 ${isScrolled ? 'pt-6' : 'pt-12'} transition-all duration-300`}>
+        {/* Barra de búsqueda principal */}
+        <form onSubmit={handleSearch} className="w-full max-w-3xl mx-auto">
+          <div className="flex items-stretch rounded-[19px] overflow-hidden shadow-elegant">
+          <Input
+            type="text"
+            placeholder="Busca tu próximo hogar..."
+              className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-[19px] py-3 md:h-[62px] px-6 text-base sm:text-lg bg-white/95"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+            <Button type="submit" className="rounded-r-[19px] bg-[#2C2C2C] hover:bg-[#D4AF37] px-6 h-auto md:h-[62px] my-0 flex items-center transition-all duration-300">
+              <Search className="h-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </Button>
+        </div>
+        </form>
+
+        {/* Botones de Alquilar/Comprar - Mejorados */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+          <Button
+            variant="outline"
+            className={`rounded-[19px] px-8 font-semibold text-center min-w-[220px] md:min-w-[240px] h-[52px] md:h-[62px] text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] ${
+              searchType === "rent" 
+                ? "bg-[#D4AF37] text-white hover:bg-[#C9982C] border-0" 
+                : "bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0"
+            }`}
+            onClick={() => handleSearchTypeChange("rent")}
+          >
+            QUIERO ALQUILAR
+          </Button>
+          <Button
+            variant="outline"
+            className={`rounded-[19px] px-8 font-semibold text-center min-w-[220px] md:min-w-[240px] h-[52px] md:h-[62px] text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-[1.02] ${
+              searchType === "sale" 
+                ? "bg-[#D4AF37] text-white hover:bg-[#C9982C] border-0" 
+                : "bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0"
+            }`}
+            onClick={() => handleSearchTypeChange("sale")}
+          >
+            QUIERO COMPRAR
+          </Button>
+        </div>
+
+        {/* Botón de filtros móvil */}
+        <div className="md:hidden flex justify-center mt-4">
+          <Button 
+            onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+            className="rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 px-6 py-2.5 shadow-md"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            {isMobileFiltersOpen ? "Ocultar filtros" : "Mostrar filtros"}
+          </Button>
+        </div>
+
+        {/* Filtros - Responsive */}
+        <div className={`${isMobileFiltersOpen ? 'block' : 'hidden'} md:block mt-6`}>
+          <div className="flex flex-wrap justify-center md:justify-start gap-3 overflow-x-auto px-4 py-2 w-full">
+          {/* Tipo de Propiedad */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${selectedPropertyType ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <Home className="h-4 w-4" />
+                Tipo de Propiedad
+                  {selectedPropertyType && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Selecciona el tipo de propiedad</h4>
+                    {selectedPropertyType && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearPropertyTypeFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                  {propertyTypes.map((type) => (
+                    <div key={type.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`property-${type.value}`} 
+                          checked={selectedPropertyType === type.value}
+                          onCheckedChange={() => {
+                            if (selectedPropertyType === type.value) {
+                              clearPropertyTypeFilter();
+                            } else {
+                              handlePropertyTypeChange(type.value);
+                            }
+                          }}
+                          className="border-[#D4AF37] text-[#D4AF37] data-[state=checked]:bg-[#D4AF37]"
+                        />
+                        <Label htmlFor={`property-${type.value}`} className="text-white cursor-pointer">
+                        {type.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Ubicación */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${selectedLocations.length > 0 ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <MapPin className="h-4 w-4" />
+                Ubicación
+                  {selectedLocations.length > 0 && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Selecciona la ubicación</h4>
+                    {selectedLocations.length > 0 && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearLocationsFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">
+                  {locations.map((location) => (
+                    <div key={location} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`location-${location}`} 
+                          checked={selectedLocations.includes(location)}
+                          onCheckedChange={() => handleLocationChange(location)}
+                          className="border-[#D4AF37] text-[#D4AF37] data-[state=checked]:bg-[#D4AF37]"
+                        />
+                        <Label htmlFor={`location-${location}`} className="text-white cursor-pointer">
+                        {location}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Precio - Reemplazar el componente Slider con un rango visual mejorado */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${(priceRange[0] > 0 || priceRange[1] < 500000) ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <DollarSign className="h-4 w-4" />
+                Precio
+                  {(priceRange[0] > 0 || priceRange[1] < 500000) && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Rango de precio (USD)</h4>
+                    {(priceRange[0] > 0 || priceRange[1] < 500000) && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearPriceFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                <div className="px-2">
+                  <div className="relative pt-8 pb-8">
+                    <div className="absolute h-1 w-full bg-[#3a3a3a] rounded-full mt-2"></div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1000000}
+                      step={10000}
+                      value={priceRange[0]}
+                      onChange={(e) => handlePriceRangeChange('min', e.target.value)}
+                      onMouseUp={handlePriceRangeCommit}
+                      onTouchEnd={handlePriceRangeCommit}
+                      className="absolute w-full appearance-none bg-transparent pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#D4AF37]"
+                      style={{ zIndex: 10 }}
+                    />
+                    <input
+                      type="range"
+                      min={0}
+                      max={1000000}
+                      step={10000}
+                      value={priceRange[1]}
+                      onChange={(e) => handlePriceRangeChange('max', e.target.value)}
+                      onMouseUp={handlePriceRangeCommit}
+                      onTouchEnd={handlePriceRangeCommit}
+                      className="absolute w-full appearance-none bg-transparent pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#D4AF37]"
+                      style={{ zIndex: 11 }}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between mt-4">
+                  <div className="space-y-1">
+                    <Label className="text-gray-400 text-xs">Mínimo</Label>
+                    <div className="text-white font-medium">${priceRange[0].toLocaleString()}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-gray-400 text-xs">Máximo</Label>
+                    <div className="text-white font-medium">${priceRange[1].toLocaleString()}</div>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Ambientes */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${selectedRooms ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <BedDouble className="h-4 w-4" />
+                Ambientes
+                  {selectedRooms && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Número de ambientes</h4>
+                    {selectedRooms && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearRoomsFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, "6+"].map((num) => (
+                    <Button 
+                      key={num} 
+                      variant="outline" 
+                        className={`border-[#333] hover:border-[#D4AF37] ${selectedRooms === num.toString() ? 'bg-[#D4AF37] text-white' : 'bg-transparent text-white hover:bg-[#D4AF37]/20'}`}
+                        onClick={() => handleRoomsChange(num.toString())}
+                    >
+                      {num}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Expensas - Reemplazar el componente Slider con un rango visual mejorado */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${(expensesRange[0] > 0 || expensesRange[1] < 500) ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <Clock className="h-4 w-4" />
+                Expensas
+                  {(expensesRange[0] > 0 || expensesRange[1] < 500) && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Rango de expensas (USD)</h4>
+                    {(expensesRange[0] > 0 || expensesRange[1] < 500) && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearExpensesFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                <div className="px-2">
+                  <div className="relative pt-8 pb-8">
+                    <div className="absolute h-1 w-full bg-[#3a3a3a] rounded-full mt-2"></div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={2000}
+                      step={50}
+                      value={expensesRange[0]}
+                      onChange={(e) => handleExpensesRangeChange('min', e.target.value)}
+                      onMouseUp={handleExpensesRangeCommit}
+                      onTouchEnd={handleExpensesRangeCommit}
+                      className="absolute w-full appearance-none bg-transparent pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#D4AF37]"
+                      style={{ zIndex: 10 }}
+                    />
+                    <input
+                      type="range"
+                      min={0}
+                      max={2000}
+                      step={50}
+                      value={expensesRange[1]}
+                      onChange={(e) => handleExpensesRangeChange('max', e.target.value)}
+                      onMouseUp={handleExpensesRangeCommit}
+                      onTouchEnd={handleExpensesRangeCommit}
+                      className="absolute w-full appearance-none bg-transparent pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#D4AF37]"
+                      style={{ zIndex: 11 }}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between mt-4">
+                  <div className="space-y-1">
+                    <Label className="text-gray-400 text-xs">Mínimo</Label>
+                    <div className="text-white font-medium">${expensesRange[0]}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-gray-400 text-xs">Máximo</Label>
+                    <div className="text-white font-medium">${expensesRange[1]}</div>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Cochera */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${garage !== "any" ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <Car className="h-4 w-4" />
+                Cochera
+                  {garage !== "any" && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Opciones de cochera</h4>
+                    {garage !== "any" && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearGarageFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <RadioGroup value={garage} onValueChange={(value) => {
+                    if (value === garage) {
+                      // Si se hace clic en el mismo valor, deseleccionar (volver a "any")
+                      handleGarageChange("any");
+                    } else {
+                      handleGarageChange(value);
+                    }
+                  }}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="any" id="garage-any" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="garage-any" className="text-white cursor-pointer" onClick={() => handleGarageChange("any")}>Cualquiera</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="garage-yes" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="garage-yes" className="text-white cursor-pointer" onClick={() => {
+                        if (garage === "yes") {
+                          handleGarageChange("any");
+                        } else {
+                          handleGarageChange("yes");
+                        }
+                      }}>Con cochera</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="garage-no" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="garage-no" className="text-white cursor-pointer" onClick={() => {
+                        if (garage === "no") {
+                          handleGarageChange("any");
+                        } else {
+                          handleGarageChange("no");
+                        }
+                      }}>Sin cochera</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+          {/* Antigüedad */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                  className={`rounded-[19px] bg-[#2C2C2C] text-white hover:bg-[#D4AF37] border-0 whitespace-nowrap px-6 py-2.5 text-sm md:text-base flex items-center gap-2 ${age !== "any" ? 'ring-2 ring-[#D4AF37]' : ''}`}
+              >
+                <Calendar className="h-4 w-4" />
+                Antigüedad
+                  {age !== "any" && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                  )}
+              </Button>
+            </PopoverTrigger>
+              <PopoverContent className="w-80 z-50 bg-[#242424] border-[#333] text-white p-4 shadow-elegant rounded-lg">
+              <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                <h4 className="font-medium text-sm text-gray-300">Antigüedad (años)</h4>
+                    {age !== "any" && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearAgeFilter}
+                        className="text-[#D4AF37] p-1 h-7 hover:bg-[#D4AF37]/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <RadioGroup value={age} onValueChange={(value) => {
+                    if (value === age) {
+                      // Si se hace clic en el mismo valor, deseleccionar (volver a "any")
+                      handleAgeChange("any");
+                    } else {
+                      handleAgeChange(value);
+                    }
+                  }}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="any" id="age-any" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="age-any" className="text-white cursor-pointer" onClick={() => handleAgeChange("any")}>Cualquiera</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="0-5" id="age-0-5" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="age-0-5" className="text-white cursor-pointer" onClick={() => {
+                        if (age === "0-5") {
+                          handleAgeChange("any");
+                        } else {
+                          handleAgeChange("0-5");
+                        }
+                      }}>0 - 5 años</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="5-15" id="age-5-15" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="age-5-15" className="text-white cursor-pointer" onClick={() => {
+                        if (age === "5-15") {
+                          handleAgeChange("any");
+                        } else {
+                          handleAgeChange("5-15");
+                        }
+                      }}>5 - 15 años</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="15+" id="age-15+" className="border-[#D4AF37] text-[#D4AF37]" />
+                      <Label htmlFor="age-15+" className="text-white cursor-pointer" onClick={() => {
+                        if (age === "15+") {
+                          handleAgeChange("any");
+                        } else {
+                          handleAgeChange("15+");
+                        }
+                      }}>Más de 15 años</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

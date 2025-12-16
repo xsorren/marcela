@@ -1,0 +1,162 @@
+/* ========================================
+   🎄 ESTILOS FESTIVOS TEMPORALES
+   Para remover: comentar el import en globals.css
+   ======================================== */
+
+/* Animaciones */
+@keyframes snowfall {
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes goldShimmer {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Componentes */
+.holiday-banner {
+  backdrop-filter: blur(10px);
+}
+
+.holiday-badge {
+  transition: all 0.3s ease;
+}
+
+.holiday-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.ribbon-shape {
+  position: relative;
+  transform: skewX(-3deg);
+}
+
+.ribbon-shape > * {
+  transform: skewX(3deg);
+}
+
+/* Efecto de nieve */
+.snow-container {
+  opacity: 0.6;
+}
+
+.snow-particle {
+  will-change: transform;
+}
+
+/* Efectos dorados en hover */
+.gold-hover {
+  transition: all 0.3s ease;
+}
+
+.gold-hover:hover {
+  color: #D4AF37;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+/* Banner animado */
+.holiday-banner-enter {
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Decoración de títulos */
+.holiday-title-decoration::before {
+  content: '✨';
+  margin-right: 8px;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.holiday-title-decoration::after {
+  content: '✨';
+  margin-left: 8px;
+  animation: sparkle 2s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* Efecto dorado sutil en cards */
+.holiday-card-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.holiday-card-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+  animation: rotateGlow 10s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Utilidades responsive */
+@media (max-width: 640px) {
+  .snow-particle {
+    display: none; /* Desactivar nieve en móvil para performance */
+  }
+}
+
+/* Animación pulse sutil */
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}

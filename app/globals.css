@@ -1,0 +1,360 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* ========================================
+   🎄 ESTILOS FESTIVOS TEMPORALES
+   Para remover: comentar esta línea
+   ======================================== */
+@import '../styles/holiday.css';
+/* ======================================== */
+
+:root {
+  /* Font Family - Modern and Professional */
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+
+  /* Light Mode Colors (Default for minimalist design) */
+  --foreground-rgb: 33, 37, 41;
+  --background-rgb: 248, 249, 250;
+
+  /* Minimalist Theme - Light Mode Default */
+  --background: 0 0% 98%;
+  --foreground: 220 13% 18%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 13% 18%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 13% 18%;
+  
+  /* Brown Primary Colors */
+  --primary: 25 69% 31%;      /* brand-brown-500 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 33 25% 83%;    /* brand-brown-200 */
+  --secondary-foreground: 25 69% 31%;
+  
+  /* Green Accent Colors */
+  --accent: 120 61% 34%;      /* brand-green-500 */
+  --accent-foreground: 0 0% 100%;
+  
+  /* Neutral Colors */
+  --muted: 210 40% 95%;
+  --muted-foreground: 215 25% 27%;
+  --border: 210 40% 90%;
+  --input: 210 40% 90%;
+  --ring: 25 69% 31%;
+  
+  /* Utility Colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --radius: 0.75rem;
+
+  /* Chart Colors - Earth tones */
+  --chart-1: 25 69% 35%;      /* Brown */
+  --chart-2: 120 61% 34%;     /* Green */
+  --chart-3: 33 25% 65%;      /* Light Brown */
+  --chart-4: 120 25% 65%;     /* Light Green */
+  --chart-5: 215 25% 45%;     /* Neutral */
+
+  /* Sidebar */
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 220 13% 18%;
+  --sidebar-primary: 25 69% 31%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 40% 95%;
+  --sidebar-accent-foreground: 220 13% 18%;
+  --sidebar-border: 210 40% 90%;
+  --sidebar-ring: 25 69% 31%;
+}
+
+/* Dark mode variables - Optional for user preference */
+@layer base {
+  .dark {
+    --background: 220 13% 9%;
+    --foreground: 210 40% 95%;
+    --card: 220 13% 12%;
+    --card-foreground: 210 40% 95%;
+    --popover: 220 13% 9%;
+    --popover-foreground: 210 40% 95%;
+    --primary: 33 25% 75%;      /* Lighter brown for dark mode */
+    --primary-foreground: 220 13% 9%;
+    --secondary: 220 13% 18%;
+    --secondary-foreground: 210 40% 95%;
+    --muted: 220 13% 18%;
+    --muted-foreground: 215 25% 65%;
+    --accent: 120 25% 65%;      /* Lighter green for dark mode */
+    --accent-foreground: 220 13% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
+    --ring: 33 25% 75%;
+    --chart-1: 33 25% 65%;
+    --chart-2: 120 25% 65%;
+    --chart-3: 25 69% 45%;
+    --chart-4: 120 61% 45%;
+    --chart-5: 215 25% 55%;
+    --sidebar-background: 220 13% 9%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 33 25% 75%;
+    --sidebar-primary-foreground: 220 13% 9%;
+    --sidebar-accent: 220 13% 18%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 220 13% 18%;
+    --sidebar-ring: 33 25% 75%;
+  }
+}
+
+@layer base {
+  /* Apply typography */
+  html {
+    font-family: var(--font-primary);
+    scroll-behavior: smooth;
+  }
+  
+  * {
+    @apply border-border;
+    font-family: var(--font-primary);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+    font-family: var(--font-primary);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  button, input, select, textarea {
+    font-family: var(--font-primary);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Brand Brown Colors */
+  .text-brand-brown {
+    color: #8A2F4C;
+  }
+  
+  .bg-brand-brown {
+    background-color: #8A2F4C;
+  }
+  
+  .border-brand-brown {
+    border-color: #8A2F4C;
+  }
+  
+  .hover\:bg-brand-brown:hover {
+    background-color: #7A3F12;
+  }
+  
+  /* Brand Green Colors */
+  .text-brand-green {
+    color: #606648;
+  }
+  
+  .bg-brand-green {
+    background-color: #606648;
+  }
+  
+  .border-brand-green {
+    border-color: #606648;
+  }
+  
+  .hover\:bg-brand-green:hover {
+    background-color: #1E7D1E;
+  }
+  
+  /* Legacy gold support (now maps to brown) */
+  .text-gold {
+    color: #8A2F4C;
+  }
+  
+  .border-gold {
+    border-color: #8A2F4C;
+  }
+  
+  .bg-gold {
+    background-color: #8A2F4C;
+  }
+  
+  .hover\:bg-gold:hover {
+    background-color: #7A3F12;
+  }
+  
+  /* Font weight utilities */
+  .font-light {
+    font-weight: 300;
+  }
+  
+  .font-regular {
+    font-weight: 400;
+  }
+  
+  .font-medium {
+    font-weight: 500;
+  }
+  
+  .font-semibold {
+    font-weight: 600;
+  }
+  
+  .font-bold {
+    font-weight: 700;
+  }
+
+  /* Extra small screen utility class */
+  @media (min-width: 420px) {
+    .xs\:text-xs {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+  }
+}
+
+/* Scroll Animation Effects - Minimalist */
+.reveal-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal-section.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Minimalist Shadows */
+.shadow-minimalist {
+  box-shadow: 0 2px 8px -2px rgba(138, 47, 76, 0.1), 
+              0 4px 12px -4px rgba(138, 47, 76, 0.05);
+}
+
+.shadow-minimalist-hover {
+  box-shadow: 0 4px 16px -4px rgba(138, 47, 76, 0.15), 
+              0 8px 24px -8px rgba(138, 47, 76, 0.1);
+}
+
+.shadow-inner {
+  box-shadow: inset 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Brand Brown Accent Line */
+.brand-accent-line {
+  position: relative;
+}
+
+.brand-accent-line::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, #8A2F4C 0%, #606648 100%);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.4s ease-out;
+}
+
+.brand-accent-line.active::after {
+  transform: scaleX(1);
+}
+
+/* Minimalist Card Hover Effects */
+.hover-card-minimal {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-card-minimal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px -4px rgba(138, 47, 76, 0.15);
+}
+
+/* Smooth Fade In Animation */
+@keyframes fadeInMinimal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-minimal {
+  animation: fadeInMinimal 0.6s ease-out forwards;
+}
+
+/* Smooth Transitions */
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+/* Container styling - More spacious */
+.container {
+  @apply mx-auto px-6 sm:px-8 lg:px-12;
+}
+
+/* Section spacing - Generous white space */
+section {
+  @apply py-16 md:py-20 lg:py-24;
+}
+
+/* Minimalist Button Styles */
+.btn-minimalist {
+  @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+  @apply border border-transparent;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary-minimal {
+  @apply bg-brand-brown-500 text-white;
+  @apply hover:bg-brand-brown-600;
+  @apply focus:ring-brand-brown-500;
+}
+
+.btn-secondary-minimal {
+  @apply bg-brand-green-500 text-white;
+  @apply hover:bg-brand-green-600;
+  @apply focus:ring-brand-green-500;
+}
+
+.btn-outline-minimal {
+  @apply border-brand-brown-500 text-brand-brown-500;
+  @apply hover:bg-brand-brown-500 hover:text-white;
+  @apply focus:ring-brand-brown-500;
+}
+
+/* Checkbox Minimalist Style */
+.checkbox-minimalist {
+  border-color: #8A2F4C !important;
+  border-width: 1.5px !important;
+  border-radius: 4px !important;
+}
+
+.checkbox-minimalist:focus-visible {
+  box-shadow: 0 0 0 2px rgba(138, 47, 76, 0.2) !important;
+}
+
+.checkbox-minimalist[data-state="checked"] {
+  background-color: #8A2F4C !important;
+  border-color: #8A2F4C !important;
+}
